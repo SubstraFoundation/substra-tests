@@ -1,0 +1,28 @@
+options:
+  celery_task_max_retries: 10
+  enable_intermediate_model_removal: False
+nodes:
+  - name: 'owkin'
+    msp_id: 'owkinMSP'
+    address: 'http://substra-backend.owkin.xyz:8000'
+    user: 'substra'
+    password: 'p@$swr0d44'
+    shared_path: '/datadisk/substra/servermedias'
+  - name: 'chunantes'
+    msp_id: 'chu-nantesMSP'
+    address: 'http://substra-backend.chunantes.xyz:8001'
+    user: 'substra'
+    password: 'p@$swr0d45'
+    shared_path: '/datadisk/substra/servermedias'
+  - name: 'clb'
+    msp_id: 'clbMSP'
+    address: 'http://substra-backend.clb.xyz:8002'
+    user: 'substra'
+    password: 'p@$swr0d46'
+    shared_path: '/datadisk/substra/servermedias'
+  - name: 'org4'
+    msp_id: 'org4MSP'
+    address: 'http://substra-backend.org4.xyz:8003'
+    user: 'substra'
+    password: 'p@$swr0d47'
+    shared_path: '/datadisk/substra/servermedias'

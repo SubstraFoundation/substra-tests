@@ -1,7 +1,10 @@
 import pytest
+import logging
 
-COMPUTE_PLAN_SIZES = [10, 100, 1000, 10000]
+COMPUTE_PLAN_SIZES = [10000]
 
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.WARN)
 
 @pytest.mark.parametrize('compute_plan_size', COMPUTE_PLAN_SIZES)
 def test_load_aggregatetuples_manual(compute_plan_size, global_execution_env):
@@ -31,6 +34,8 @@ def test_load_aggregatetuples_manual(compute_plan_size, global_execution_env):
     for i in range(compute_plan_size):
         rank = i*2
         composite_traintuples = []
+
+        _logger.warning(f'round: {i}')
 
         for j in range(len(sessions)):
             spec = factory.create_composite_traintuple(
