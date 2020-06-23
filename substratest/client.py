@@ -18,7 +18,7 @@ class Client:
         super().__init__()
 
         self.node_id = node_id
-        self._client = substra.Client(url=address, version="0.0", insecure=False)
+        self._client = substra.Client(url=address, version="0.0", insecure=False, backend='local')
         self._client.login(user, password)
 
     def add_data_sample(self, spec, *args, **kwargs):

@@ -49,7 +49,7 @@ if __name__ == '__main__':
     tools.metrics.execute(TestMetrics())
 """
 
-DEFAULT_ALGO_SCRIPT = f"""
+DEFAULT_ALGO_SCRIPT = """
 import json
 import substratools as tools
 class TestAlgo(tools.Algo):
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     tools.algo.execute(TestAlgo())
 """
 
-DEFAULT_AGGREGATE_ALGO_SCRIPT = f"""
+DEFAULT_AGGREGATE_ALGO_SCRIPT = """
 import json
 import substratools as tools
 class TestAggregateAlgo(tools.AggregateAlgo):
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
 # TODO we should have a different serializer for head and trunk models
 
-DEFAULT_COMPOSITE_ALGO_SCRIPT = f"""
+DEFAULT_COMPOSITE_ALGO_SCRIPT = """
 import json
 import substratools as tools
 class TestCompositeAlgo(tools.CompositeAlgo):
@@ -429,7 +429,7 @@ class AssetsFactory:
         self._dataset_counter = Counter()
         self._objective_counter = Counter()
         self._algo_counter = Counter()
-        self._workdir = pathlib.Path(tempfile.mkdtemp())
+        self._workdir = pathlib.Path(tempfile.mkdtemp(prefix=os.getcwd() + '/'))
         self._uuid = name
 
     def __enter__(self):

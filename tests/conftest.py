@@ -145,12 +145,13 @@ def default_data_env():
             objectives.append(objective)
 
         assets = _DataEnv(datasets=datasets, objectives=objectives)
-        return assets
+        yield assets
 
 
 @pytest.fixture
 def data_env_1(default_data_env, client_1):
     """Fixture with pre-existing assets in first node."""
+    return default_data_env
     return default_data_env.filter_by(client_1.node_id)
 
 
