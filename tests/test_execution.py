@@ -22,7 +22,7 @@ def test_tuples_execution_on_same_node(factory, client, default_dataset, default
         data_samples=default_dataset.train_data_sample_keys,
         metadata={"foo": "bar"}
     )
-    traintuple = client.add_traintuple(spec).future().wait()
+    traintuple = client.add_traintuple(spec, fake_data=True, n_samples=10).future().wait()
     assert traintuple.status == assets.Status.done
     assert traintuple.metadata == {"foo": "bar"}
     assert traintuple.out_model is not None
@@ -34,7 +34,7 @@ def test_tuples_execution_on_same_node(factory, client, default_dataset, default
     # create testtuple
     # don't create it before to avoid MVCC errors
     spec = factory.create_testtuple(objective=default_objective, traintuple=traintuple)
-    testtuple = client.add_testtuple(spec).future().wait()
+    testtuple = client.add_testtuple(spec, fake_data=True, n_samples=10).future().wait()
     assert testtuple.status == assets.Status.done
 
     # add a traintuple depending on first traintuple
@@ -45,7 +45,7 @@ def test_tuples_execution_on_same_node(factory, client, default_dataset, default
         traintuples=[traintuple],
         metadata=None
     )
-    traintuple = client.add_traintuple(spec).future().wait()
+    traintuple = client.add_traintuple(spec, fake_data=True, n_samples=10).future().wait()
     assert traintuple.status == assets.Status.done
     assert traintuple.metadata == {}
     assert len(traintuple.in_models) == 1
@@ -221,6 +221,7 @@ def test_composite_traintuples_execution(factory, client, default_dataset, defau
     spec = factory.create_testtuple(objective=default_objective, traintuple=composite_traintuple_2)
     testtuple = client.add_testtuple(spec).future().wait()
     assert testtuple.status == assets.Status.done
+    assert testtuple.dataset.perf == 24
 
     # list composite traintuple
     composite_traintuples = client.list_composite_traintuple()

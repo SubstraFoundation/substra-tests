@@ -44,7 +44,7 @@ import json
 import substratools as tools
 class TestMetrics(tools.Metrics):
     def score(self, y_true, y_pred):
-        return 101
+        return sum(y_pred)
 if __name__ == '__main__':
     tools.metrics.execute(TestMetrics())
 """
@@ -90,9 +90,15 @@ import json
 import substratools as tools
 class TestCompositeAlgo(tools.CompositeAlgo):
     def train(self, X, y, head_model, trunk_model, rank):
-        return [0, 1], [0, 2]
+        trained_head = [1, 2]
+        trained_trunk = [4, 5]
+        if head_model is not None:
+            trained_head = [sum(x) for x in zip(trained_head, head_model)]
+        if trunk_model is not None:
+            trained_trunk = [sum(x) for x in zip(trained_trunk, trunk_model)]
+        return trained_head, trained_trunk
     def predict(self, X, head_model, trunk_model):
-        return [0, 99]
+        return [sum(x) for x in zip(head_model, trunk_model)]
     def load_head_model(self, path):
         return self._load_model(path)
     def save_head_model(self, model, path):
