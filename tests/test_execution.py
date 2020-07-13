@@ -373,3 +373,103 @@ def test_aggregate_composite_traintuples(factory, network, clients, default_data
     )
     traintuple = client.add_traintuple(spec).future().wait()
     assert traintuple.status == assets.Status.failed
+
+
+@pytest.mark.slow
+def test_tmp(factory, network, clients, default_datasets, default_objectives):
+    """Do 2 rounds of composite traintuples aggregations on multiple nodes.
+
+    Compute plan details:
+
+    Round 1:
+    - Create 2 composite traintuples executed on two datasets located on node 1 and
+      node 2.
+    - Create an aggregatetuple on node 1, aggregating the two previous composite
+      traintuples (trunk models aggregation).
+
+    Round 2:
+    - Create 2 composite traintuples executed on each nodes that depend on: the
+      aggregated tuple and the previous composite traintuple executed on this node. That
+      is to say, the previous round aggregated trunk models from all nodes and the
+      previous round head model from this node.
+    - Create an aggregatetuple on node 1, aggregating the two previous composite
+      traintuples (similar to round 1 aggregatetuple).
+    - Create a testtuple for each previous composite traintuples and aggregate tuple
+      created during this round.
+
+    (optional) if the option "enable_intermediate_model_removal" is True:
+    - Since option "enable_intermediate_model_removal" is True, the aggregate model created on round 1 should
+      have been deleted from the backend after round 2 has completed.
+    - Create a traintuple that depends on the aggregate tuple created on round 1. Ensure that it fails to start.
+
+    This test refers to the model composition use case.
+    """
+
+    aggregate_worker = clients[0].node_id
+    number_of_rounds = 2
+
+    # register algos on first node
+    spec = factory.create_composite_algo()
+    composite_algo = clients[0].add_composite_algo(spec)
+    spec = factory.create_aggregate_algo()
+    aggregate_algo = clients[0].add_aggregate_algo(spec)
+
+    # launch execution
+    previous_aggregatetuple = None
+    previous_composite_traintuples = []
+
+    for round_ in range(number_of_rounds):
+        # create composite traintuple on each node
+        composite_traintuples = []
+        for index, dataset in enumerate(default_datasets):
+            kwargs = {}
+            if previous_aggregatetuple:
+                kwargs = {
+                    'head_traintuple': previous_composite_traintuples[index],
+                    'trunk_traintuple': previous_aggregatetuple,
+                }
+            spec = factory.create_composite_traintuple(
+                algo=composite_algo,
+                dataset=dataset,
+                data_samples=[dataset.train_data_sample_keys[0 + round_]],
+                permissions=Permissions(public=False, authorized_ids=[c.node_id for c in clients]),
+                **kwargs,
+            )
+            t = clients[0].add_composite_traintuple(spec).future().wait()
+            composite_traintuples.append(t)
+
+        # create aggregate on its node
+        spec = factory.create_aggregatetuple(
+            algo=aggregate_algo,
+            worker=aggregate_worker,
+            traintuples=composite_traintuples,
+        )
+        aggregatetuple = clients[0].add_aggregatetuple(spec).future().wait()
+
+        # save state of round
+        previous_aggregatetuple = aggregatetuple
+        previous_composite_traintuples = composite_traintuples
+
+    # last round: create associated testtuple
+    for traintuple, objective in zip(previous_composite_traintuples, default_objectives):
+        spec = factory.create_testtuple(
+            objective=objective,
+            traintuple=traintuple,
+        )
+        clients[0].add_testtuple(spec).future().wait()
+
+    if not network.options.enable_intermediate_model_removal:
+        return
+
+    spec = factory.create_algo()
+    algo = clients[0].add_algo(spec)
+
+    # create traintuple
+    spec = factory.create_traintuple(
+        algo=algo,
+        dataset=default_datasets[0],
+        data_samples=default_datasets[0].train_data_sample_keys,
+        metadata={"foo": "bar"},
+        traintuples=[c.key for c in previous_composite_traintuples]
+    )
+    traintuple = clients[0].add_traintuple(spec).future().wait()
