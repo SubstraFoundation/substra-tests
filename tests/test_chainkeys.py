@@ -10,7 +10,7 @@ import substra
 
 SECRETS_PATH = "/sandbox/chainkeys/"
 
-CHAINKEY_ALGO_SCRIPT = f"""
+CHAINKEY_ALGO_SCRIPT = """
 import json
 from pathlib import Path
 import substratools as tools
@@ -44,6 +44,7 @@ class TestAlgo(tools.Algo):
 if __name__ == '__main__':
     tools.algo.execute(TestAlgo())
 """
+
 
 @pytest.fixture
 def partners_list():
